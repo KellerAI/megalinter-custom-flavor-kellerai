@@ -1,8 +1,8 @@
 # MegaLinter Custom Flavor: KellerAI_MegaLinter
 
-This custom MegaLinter aims to have an optimized Docker image size.
+A pre-built custom MegaLinter flavor with a curated set of linters. This repository tracks upstream MegaLinter releases and provides a ready-to-use GitHub Action with our selected linters.
 
-It is built from official MegaLinter images, but is maintained on <https://github.com/KellerAI/megalinter-custom-flavor-kellerai> by Jonathan Bowe
+Maintained on <https://github.com/KellerAI/megalinter-custom-flavor-kellerai> by Jonathan Bowe
 
 ## Embedded linters
 
@@ -42,56 +42,39 @@ It is built from official MegaLinter images, but is maintained on <https://githu
 - [YAML_V8R](https://megalinter.io/latest/descriptors/yaml_v8r/)
 - [YAML_YAMLLINT](https://megalinter.io/latest/descriptors/yaml_yamllint/)
 
-## How to use the custom flavor
+## How to use this custom flavor
 
-Follow [MegaLinter installation guide](https://megalinter.io/latest/install-assisted/), and replace related elements in the workflow.
+### GitHub Action
 
-- **GitHub Action**: On MegaLinter step in `.github/workflows/mega-linter.yml`, define `uses: KellerAI/megalinter-custom-flavor-kellerai@main`
-- **Docker image**: Replace official MegaLinter image with `ghcr.io/KellerAI/megalinter-custom-flavor-kellerai/megalinter-custom-flavor:latest`
+This is a pre-built custom MegaLinter flavor - you don't need to build it yourself. Simply use it directly in your GitHub workflows.
 
-## How the flavor is generated and updated
+In your workflow file (`.github/workflows/mega-linter.yml`), add:
 
-This custom flavor is automatically kept up to date with MegaLinter releases:
+```yaml
+- name: MegaLinter
+  uses: KellerAI/megalinter-custom-flavor-kellerai@main
+```
 
-1. **Automatic version sync**: The `check-new-megalinter-version` workflow runs daily, checks for new MegaLinter releases, and automatically creates matching releases in this repository.
+That's it! This will automatically use our pre-built MegaLinter flavor with all the configured linters listed above.
 
-2. **Automated builds**: Each release triggers the `megalinter-custom-flavor-builder` workflow, which:
-   - Builds a Docker image with only the selected linters
-   - Publishes to GitHub Container Registry (ghcr.io)
-   - Optionally publishes to Docker Hub (if credentials are configured)
+## About this flavor
 
-3. **Available image tags**:
-   - Release tags (e.g., `v9.0.0`): Built from MegaLinter releases
-   - `beta` tag: Built from non-main branch pushes for testing
-   - `latest` tag: Points to the most recent release
+This is a pre-built custom MegaLinter flavor maintained as a GitHub Action. Users can directly use this flavor without any build steps.
 
-## Configuration requirements
+**Key features**:
+- **Ready to use**: No building required - just reference it in your GitHub Actions
+- **Curated linter set**: Includes essential linters for JavaScript, TypeScript, Python, Docker, and more
+- **Automatic version tracking**: Stays synchronized with upstream MegaLinter releases
 
-### Required: Personal Access Token
+## Version tracking
 
-For automatic version checking to work, a `PAT_TOKEN` secret must be configured as a **repository-scoped fine-grained token** with:
-- **Repository access**: Only select repositories (select this repository)
-- **Repository permissions**:
-  - Contents: Read and write
-  - Actions: Read and write
+This repository automatically tracks upstream MegaLinter releases:
 
-See the [Custom Flavors documentation](https://megalinter.io/beta/custom-flavors/) for detailed setup instructions.
+- **Daily checks**: The `check-new-megalinter-version` workflow runs daily to detect new MegaLinter versions
+- **Automatic releases**: When a new version is found, a matching release is created in this repository
+- **Version alignment**: The pre-built image is maintained separately and updated to match upstream versions
+- **Release history**: Check the [Releases page](https://github.com/KellerAI/megalinter-custom-flavor-kellerai/releases) to see all tracked versions
 
-### Optional: Docker Hub publishing
-
-To publish to Docker Hub in addition to ghcr.io, configure:
-- `DOCKERHUB_REPO` variable (e.g., your Docker Hub username)
-- `DOCKERHUB_USERNAME` secret
-- `DOCKERHUB_PASSWORD` secret
-
-## How to generate the flavor manually
-
-If you need to manually trigger a build:
-
-1. **Create a GitHub release**: Creates a versioned build matching the tag name (e.g., `v9.0.0`)
-2. **Push to any branch** (except main): Builds a `beta` tagged image for testing
-3. **Manually run the workflow**: Go to Actions > Build & Push MegaLinter Custom Flavor > Run workflow
-
-See [full Custom Flavors documentation](https://megalinter.io/beta/custom-flavors/).
+The `megalinter-custom-flavor.yml` file defines which linters are included in this custom flavor.
 
 [![MegaLinter is graciously provided by OX Security](https://raw.githubusercontent.com/oxsecurity/megalinter/main/docs/assets/images/ox-banner.png)](https://www.ox.security/?ref=megalinter)

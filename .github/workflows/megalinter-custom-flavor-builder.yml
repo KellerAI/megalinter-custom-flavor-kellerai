@@ -1,25 +1,19 @@
 # =============================================================
 # Build MegaLinter Custom Flavor Workflow
 #
-# This workflow builds and publishes a custom MegaLinter Docker image
-# to GitHub Container Registry (ghcr.io) and optionally Docker Hub.
+# This workflow builds a custom MegaLinter Docker image
+# to GitHub Container Registry (ghcr.io).
 #
 # Usage:
 # - Triggers on push, release, or manual dispatch.
-# - Tags the image with the release tag (on release) or 'alpha' (otherwise).
-# - Pushes to ghcr.io and, if credentials are set, to Docker Hub.
+# - Tags the image with the release tag (on release) or 'beta' (otherwise).
+# - Pushes to ghcr.io.
 #
 # Required repository secrets:
 #   - GITHUB_TOKEN: Provided by GitHub Actions (for ghcr.io push)
-#   - DOCKERHUB_USERNAME: (optional) Docker Hub username for push
-#   - DOCKERHUB_PASSWORD: (optional) Docker Hub password/token for push
-#
-# Optional repository variables:
-#   - DOCKERHUB_REPO: Docker Hub repository name (e.g. nvuillam)
 #
 # The MegaLinter custom flavor image will be available at:
 #   - ghcr.io/<owner>/<repo>:<tag>
-#   - docker.io/<dockerhub_repo>/<repo>:<tag> (if Docker Hub credentials are set)
 # =============================================================
 
 name: Build & Push MegaLinter Custom Flavor
@@ -94,25 +88,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # Log in to Docker Hub only if credentials are provided
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          registry: docker.io
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
-        continue-on-error: true
-
       - name: Build MegaLinter Custom Flavor
         uses: oxsecurity/megalinter/flavors/custom-builder@main
         with:
           megalinter-custom-flavor-builder-tag: ${{ steps.determine-tag.outputs.tag }}
           is-latest: ${{ steps.determine-tag.outputs.is-latest }}
           upload-to-ghcr: "true"
-          upload-to-dockerhub: ${{ secrets.DOCKERHUB_USERNAME != '' && secrets.DOCKERHUB_PASSWORD != '' && 'true' || 'false' }}
-          dockerhub-repo: ${{ vars.DOCKERHUB_REPO }}
+          upload-to-dockerhub: "false"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CUSTOM_FLAVOR_BUILD_REPO: ${{ github.repository }}
+          CUSTOM_FLAVOR_BUILD_REPO: ${{ github.repository | lowercase }}
           CUSTOM_FLAVOR_BUILD_REPO_URL: ${{ github.repositoryUrl }}
-          CUSTOM_FLAVOR_BUILD_USER: ${{ github.actor }}
+          CUSTOM_FLAVOR_BUILD_USER: ${{ github.actor | lowercase }}

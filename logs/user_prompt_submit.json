@@ -1,0 +1,66 @@
+[
+  {
+    "session_id": "c6c92a10-2330-474e-9cc0-97ffc9c1e1cf",
+    "transcript_path": "/Users/jonathans_macbook/.claude/projects/-Users-jonathans-macbook-github-mega-linter/c6c92a10-2330-474e-9cc0-97ffc9c1e1cf.jsonl",
+    "cwd": "/Users/jonathans_macbook/github/mega-linter",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "/commit-commands:commit-push-pr "
+  },
+  {
+    "session_id": "c6c92a10-2330-474e-9cc0-97ffc9c1e1cf",
+    "transcript_path": "/Users/jonathans_macbook/.claude/projects/-Users-jonathans-macbook-github-mega-linter/c6c92a10-2330-474e-9cc0-97ffc9c1e1cf.jsonl",
+    "cwd": "/Users/jonathans_macbook/github/mega-linter",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "https://github.com/KellerAI/megalinter-custom-flavor-kellerai/actions/runs/19192107491/job/54867963621?pr=1#logs"
+  },
+  {
+    "session_id": "c6c92a10-2330-474e-9cc0-97ffc9c1e1cf",
+    "transcript_path": "/Users/jonathans_macbook/.claude/projects/-Users-jonathans-macbook-github-mega-linter/c6c92a10-2330-474e-9cc0-97ffc9c1e1cf.jsonl",
+    "cwd": "/Users/jonathans_macbook/github/mega-linter",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "Review the and correct the comments left on the PR by coderabbitai"
+  },
+  {
+    "session_id": "c6c92a10-2330-474e-9cc0-97ffc9c1e1cf",
+    "transcript_path": "/Users/jonathans_macbook/.claude/projects/-Users-jonathans-macbook-github-mega-linter/c6c92a10-2330-474e-9cc0-97ffc9c1e1cf.jsonl",
+    "cwd": "/Users/jonathans_macbook/github/mega-linter",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "Open a new repoprompt workspace and stop using native tools"
+  },
+  {
+    "session_id": "c6c92a10-2330-474e-9cc0-97ffc9c1e1cf",
+    "transcript_path": "/Users/jonathans_macbook/.claude/projects/-Users-jonathans-macbook-github-mega-linter/c6c92a10-2330-474e-9cc0-97ffc9c1e1cf.jsonl",
+    "cwd": "/Users/jonathans_macbook/github/mega-linter",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "Now you have a RepoPrompt window, use it"
+  },
+  {
+    "session_id": "c6c92a10-2330-474e-9cc0-97ffc9c1e1cf",
+    "transcript_path": "/Users/jonathans_macbook/.claude/projects/-Users-jonathans-macbook-github-mega-linter/c6c92a10-2330-474e-9cc0-97ffc9c1e1cf.jsonl",
+    "cwd": "/Users/jonathans_macbook/github/mega-linter",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "/pr-review-toolkit:review-pr "
+  },
+  {
+    "session_id": "c6c92a10-2330-474e-9cc0-97ffc9c1e1cf",
+    "transcript_path": "/Users/jonathans_macbook/.claude/projects/-Users-jonathans-macbook-github-mega-linter/c6c92a10-2330-474e-9cc0-97ffc9c1e1cf.jsonl",
+    "cwd": "/Users/jonathans_macbook/github/mega-linter",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "Stop using read, use RepoPrompt tools"
+  },
+  {
+    "session_id": "c6c92a10-2330-474e-9cc0-97ffc9c1e1cf",
+    "transcript_path": "/Users/jonathans_macbook/.claude/projects/-Users-jonathans-macbook-github-mega-linter/c6c92a10-2330-474e-9cc0-97ffc9c1e1cf.jsonl",
+    "cwd": "/Users/jonathans_macbook/github/mega-linter",
+    "permission_mode": "bypassPermissions",
+    "hook_event_name": "UserPromptSubmit",
+    "prompt": "Remove the Docker instances, we will be using a local version of this"
+  }
+]
