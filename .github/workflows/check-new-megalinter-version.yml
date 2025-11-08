@@ -1,0 +1,270 @@
+# =============================================================
+# Check for New MegaLinter Version Workflow
+#
+# This workflow checks daily for new versions of MegaLinter
+# and creates a release to track version updates.
+#
+# Usage:
+# - Runs daily at 00:00 UTC via schedule
+# - Can be manually triggered via workflow_dispatch
+# - Compares MegaLinter tags with current repository tags
+# - Creates a new release if a new MegaLinter version is detected
+#
+# The workflow will:
+# 1. Fetch all tags from oxsecurity/megalinter repository
+# 2. Fetch all tags from the current repository
+# 3. Compare versions and detect new releases
+# 4. Create a release with the new version tag
+#
+# Note: This repository uses a local/pre-built version of MegaLinter.
+# Docker image building is handled separately outside of GitHub Actions.
+#
+# Required permissions:
+#   - contents: write (to create releases and tags)
+# =============================================================
+
+name: Check for New MegaLinter Version
+
+on:
+  schedule:
+    # Run daily at 00:00 UTC
+    - cron: "0 0 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  check-new-version:
+    name: Check for New MegaLinter Version
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch MegaLinter Repository Tags
+        id: fetch-megalinter-tags
+        run: |
+          set -e
+          set -o pipefail
+          echo "Fetching tags from oxsecurity/megalinter..."
+
+          # Fetch all tags from MegaLinter repository (filtering for version tags only)
+          if ! MEGALINTER_TAGS=$(git ls-remote --tags --refs https://github.com/oxsecurity/megalinter.git 2>&1 | \
+            grep -E 'refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$' | \
+            sed 's/.*refs\/tags\///' | \
+            sort -V | \
+            tail -n 20); then
+            echo "::error::Failed to fetch MegaLinter tags from GitHub"
+            exit 1
+          fi
+
+          echo "Latest MegaLinter tags:"
+          echo "$MEGALINTER_TAGS"
+
+          # Get the latest tag and validate it
+          LATEST_MEGALINTER_TAG=$(echo "$MEGALINTER_TAGS" | tail -n 1)
+          
+          if [ -z "$LATEST_MEGALINTER_TAG" ]; then
+            echo "::error::Failed to find any version tags in MegaLinter repository"
+            exit 1
+          fi
+          
+          if ! echo "$LATEST_MEGALINTER_TAG" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::Invalid version format from MegaLinter: $LATEST_MEGALINTER_TAG"
+            exit 1
+          fi
+          
+          echo "latest_tag=$LATEST_MEGALINTER_TAG" >> $GITHUB_OUTPUT
+
+          # Save all tags to a file
+          echo "$MEGALINTER_TAGS" > megalinter_tags.txt
+
+      - name: Fetch Current Repository Tags
+        id: fetch-repo-tags
+        run: |
+          set -e
+          set -o pipefail
+          echo "Fetching tags from current repository..."
+
+          # Check if git repository is accessible
+          if ! git rev-parse --git-dir > /dev/null 2>&1; then
+            echo "::error::Not in a git repository or git is not available"
+            exit 1
+          fi
+
+          # Fetch all version tags from current repository
+          REPO_TAGS=$(git tag -l 'v*' | sort -V || echo "")
+
+          echo "Current repository tags:"
+          echo "$REPO_TAGS"
+
+          # Get the latest tag from current repository
+          if [ -z "$REPO_TAGS" ]; then
+            LATEST_REPO_TAG=""
+            echo "No existing tags in repository"
+          else
+            LATEST_REPO_TAG=$(echo "$REPO_TAGS" | tail -n 1)
+            echo "Latest repository tag: $LATEST_REPO_TAG"
+          fi
+
+          echo "latest_repo_tag=$LATEST_REPO_TAG" >> $GITHUB_OUTPUT
+
+      - name: Find New Version
+        id: find-new-version
+        run: |
+          set -e
+          echo "Comparing versions..."
+
+          LATEST_MEGALINTER_TAG="${{ steps.fetch-megalinter-tags.outputs.latest_tag }}"
+          LATEST_REPO_TAG="${{ steps.fetch-repo-tags.outputs.latest_repo_tag }}"
+
+          # Validate required variable
+          if [ -z "$LATEST_MEGALINTER_TAG" ]; then
+            echo "::error::MegaLinter tag is empty - fetch step may have failed"
+            exit 1
+          fi
+
+          echo "Latest MegaLinter tag: $LATEST_MEGALINTER_TAG"
+          echo "Latest repository tag: $LATEST_REPO_TAG"
+
+          # Function to compare semantic versions with validation
+          # Returns: 0 = ver1 > ver2, 1 = ver1 <= ver2, 2 = validation error
+          version_greater_than() {
+            local ver1="${1#v}"
+            local ver2="${2#v}"
+            
+            # Validate version format
+            if ! echo "$ver1" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+              echo "::error::Invalid version format: $ver1" >&2
+              return 2  # Validation error
+            fi
+            if ! echo "$ver2" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+              echo "::error::Invalid version format: $ver2" >&2
+              return 2  # Validation error
+            fi
+            
+            # Use sort -V to compare versions
+            if [ "$(printf '%s\n' "$ver1" "$ver2" | sort -V | tail -n1)" = "$ver1" ] && [ "$ver1" != "$ver2" ]; then
+              return 0  # ver1 > ver2
+            else
+              return 1  # ver1 <= ver2
+            fi
+          }
+
+          # Check if we should create a new release
+          if [ -z "$LATEST_REPO_TAG" ]; then
+            echo "No existing tags in repository. Will create release for $LATEST_MEGALINTER_TAG"
+            echo "new_version_found=true" >> $GITHUB_OUTPUT
+            echo "new_version=$LATEST_MEGALINTER_TAG" >> $GITHUB_OUTPUT
+          else
+            # Call version comparison and handle different return codes
+            version_greater_than "$LATEST_MEGALINTER_TAG" "$LATEST_REPO_TAG"
+            COMPARISON_RESULT=$?
+            
+            if [ $COMPARISON_RESULT -eq 2 ]; then
+              echo "::error::Version validation failed during comparison"
+              exit 1
+            elif [ $COMPARISON_RESULT -eq 0 ]; then
+              echo "✅ New version found! $LATEST_MEGALINTER_TAG > $LATEST_REPO_TAG"
+              echo "new_version_found=true" >> $GITHUB_OUTPUT
+              echo "new_version=$LATEST_MEGALINTER_TAG" >> $GITHUB_OUTPUT
+            else
+              echo "ℹ️ No new version. Repository is up to date."
+              echo "new_version_found=false" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+      - name: Create Release for New Version
+        if: steps.find-new-version.outputs.new_version_found == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NEW_VERSION: ${{ steps.find-new-version.outputs.new_version }}
+        run: |
+          set -e
+          echo "Creating release for version $NEW_VERSION..."
+
+          # Validate version before creating release
+          if [ -z "$NEW_VERSION" ]; then
+            echo "::error::NEW_VERSION is empty"
+            exit 1
+          fi
+
+          if ! echo "$NEW_VERSION" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::Invalid version format: $NEW_VERSION"
+            exit 1
+          fi
+
+          # Create a release using GitHub CLI (will also create the tag)
+          if ! gh release create "$NEW_VERSION" \
+            --title "MegaLinter Custom Flavor $NEW_VERSION" \
+            --notes "Automated release to sync with MegaLinter version $NEW_VERSION.
+
+          This release was automatically created to build a custom MegaLinter flavor based on the upstream MegaLinter release $NEW_VERSION.
+
+          For more information about changes in this version, see the [MegaLinter changelog](https://github.com/oxsecurity/megalinter/releases/tag/$NEW_VERSION)." \
+            --latest 2>&1 | tee release_create.log; then
+            
+            # Analyze error type for better error messaging
+            ERROR_MSG="Failed to create release for $NEW_VERSION"
+            
+            # Check for common error patterns
+            if grep -qi "already exists" release_create.log; then
+              ERROR_MSG="Tag $NEW_VERSION already exists. This usually means the release was already created."
+              echo "::warning::$ERROR_MSG"
+            elif grep -qi "permission\|unauthorized\|forbidden" release_create.log; then
+              ERROR_MSG="Permission denied. Check that GITHUB_TOKEN has 'contents: write' permission."
+              echo "::error::$ERROR_MSG"
+            elif grep -qi "rate limit\|too many requests" release_create.log; then
+              ERROR_MSG="GitHub API rate limit exceeded. Please wait and retry later."
+              echo "::error::$ERROR_MSG"
+            elif grep -qi "not found\|404" release_create.log; then
+              ERROR_MSG="Repository not found or gh CLI not configured properly."
+              echo "::error::$ERROR_MSG"
+            else
+              echo "::error::$ERROR_MSG"
+            fi
+            
+            echo "Error details:"
+            cat release_create.log
+            exit 1
+          fi
+          
+          echo "release_created=true" >> $GITHUB_OUTPUT
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Check for New MegaLinter Version Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Validate output variables before using them
+          LATEST_MEGALINTER_TAG="${{ steps.fetch-megalinter-tags.outputs.latest_tag }}"
+          LATEST_REPO_TAG="${{ steps.fetch-repo-tags.outputs.latest_repo_tag }}"
+          
+          # Check if required outputs are available
+          if [ -z "$LATEST_MEGALINTER_TAG" ] && [ "${{ steps.fetch-megalinter-tags.outcome }}" != "success" ]; then
+            echo "⚠️ Failed to fetch MegaLinter tags" >> $GITHUB_STEP_SUMMARY
+            exit 0
+          fi
+
+          if [ "${{ steps.find-new-version.outputs.new_version_found }}" == "true" ]; then
+            echo "✅ New version found: **${{ steps.find-new-version.outputs.new_version }}**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "A new release has been created to track the upstream MegaLinter version." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "ℹ️ No new versions found. Repository is up to date with MegaLinter." >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version Comparison:**" >> $GITHUB_STEP_SUMMARY
+          echo "- Latest MegaLinter version: **$LATEST_MEGALINTER_TAG**" >> $GITHUB_STEP_SUMMARY
+
+          if [ -n "$LATEST_REPO_TAG" ]; then
+            echo "- Latest repository version: **$LATEST_REPO_TAG**" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- Latest repository version: **No tags found**" >> $GITHUB_STEP_SUMMARY
+          fi

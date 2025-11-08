@@ -1,0 +1,13 @@
+name: "MegaLinter Custom Flavor: KellerAI_MegaLinter"
+author: "KellerAI Development Team"
+description: "MegaLinter Custom Flavor KellerAI_MegaLinter"
+outputs:
+  has_updated_sources:
+    description: "0 if no source file has been updated, 1 if source files has been updated"
+runs:
+  using: "docker"
+  # You can manually update the Docker image version here, or use the latest tag
+  image: "docker://ghcr.io/kellerai/megalinter-custom-flavor-kellerai/megalinter-custom-flavor:latest"
+branding:
+  icon: "check"
+  color: "green"

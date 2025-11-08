@@ -1,0 +1,54 @@
+{
+	"mcpServers": {
+		"serena": {
+			"type": "stdio",
+			"command": "serena",
+			"args": [
+				"start-mcp-server",
+				"--context",
+				"ide-assistant",
+				"--mode",
+				"interactive",
+				"--mode",
+				"planning",
+				"--project",
+				"${HOME}/github/mega-linter"
+			],
+			"env": {}
+		},
+		"clearthought": {
+			"type": "stdio",
+			"command": "npx",
+			"args": ["-y", "@waldzellai/clear-thought-onepointfive@latest"],
+			"env": {}
+		},
+		"context7": {
+			"type": "stdio",
+			"command": "npx",
+			"args": ["-y", "@upstash/context7-mcp"],
+			"env": {
+				"CONTEXT7_API_KEY": "${CONTEXT7_API_KEY}"
+			}
+		},
+		"task-master-ai": {
+			"type": "stdio",
+			"command": "npx",
+			"args": ["-y", "task-master-ai"],
+			"env": {
+				"TASK_MASTER_TOOLS": "all"
+			}
+		},
+		"RepoPrompt": {
+			"command": "${HOME}/_claude/bin/repoprompt_cli",
+			"args": []
+		},
+		"tavily": {
+			"type": "stdio",
+			"command": "npx",
+			"args": ["-y", "tavily-mcp@latest"],
+			"env": {
+				"TAVILY_API_KEY": "${TAVILY_API_KEY}"
+			}
+		}
+	}
+}

@@ -1,0 +1,40 @@
+# MegaLinter Custom Flavor configuration
+# If you update it manually, run `npx mega-linter-runner --custom-flavor-setup` to propagate updates.
+
+label: KellerAI_MegaLinter
+linters:
+  - bash_shellcheck
+  - dockerfile_dockerfilelint
+  - dockerfile_hadolint
+  - editorconfig_editorconfig_checker
+  - env_dotenv_linter
+  - javascript_es
+  - javascript_prettier
+  - javascript_standard
+  - json_jsonlint
+  - json_npm_package_json_lint
+  - json_prettier
+  - json_v8r
+  - makefile_checkmake
+  - markdown_markdownlint
+  - markdown_markdown_link_check
+  - markdown_markdown_table_formatter
+  - python_bandit
+  - python_black
+  - python_isort
+  - python_mypy
+  - python_ruff
+  - python_ruff_format
+  - repository_gitleaks
+  - repository_ls_lint
+  - repository_secretlint
+  - repository_semgrep
+  - repository_syft
+  - spell_proselint
+  - typescript_es
+  - typescript_prettier
+  - typescript_standard
+  - xml_xmllint
+  - yaml_prettier
+  - yaml_v8r
+  - yaml_yamllint
